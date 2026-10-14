@@ -99,8 +99,8 @@
             <!-- Direct Instant Contact -->
             <div class="text-center pt-2">
                 <span class="text-xs text-gray-400">Prefer speaking directly with the specialist?</span>
-                <a href="https://wa.me/{{ settings.OPERATOR_WHATSAPP }}?text=Hello%20Athul,%20I%20want%20to%20proceed%20with%20cyber%20hardening%20for%20{{ domain }}." target="_blank" class="block mt-2 text-xs text-emerald-400 hover:text-emerald-300 font-bold">
-                    <i class="fa-brands fa-whatsapp"></i> Chat directly on WhatsApp (+971 50 360 0923)
+                <a href="https://wa.me/{{ settings.OPERATOR_WHATSAPP.replace('+', '').replace(' ', '') }}?text=Hello%20{{ settings.OPERATOR_NAME.split(' ')[0] }},%20I%20want%20to%20proceed%20with%20cyber%20hardening%20for%20{{ domain }}." target="_blank" class="block mt-2 text-xs text-emerald-400 hover:text-emerald-300 font-bold">
+                    <i class="fa-brands fa-whatsapp"></i> Chat directly on WhatsApp ({{ settings.OPERATOR_WHATSAPP }})
                 </a>
             </div>
 

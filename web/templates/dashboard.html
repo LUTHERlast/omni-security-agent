@@ -148,10 +148,18 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-800/60">
-                        {% for audit in audits %}
+                        {% for item in audit_items %}
+                        {% set audit = item.audit %}
                         <tr class="hover:bg-slate-800/30 transition">
                             <td class="px-6 py-4">
-                                <div class="font-bold text-white">{{ audit.company_name or audit.domain }}</div>
+                                <div class="font-bold text-white flex items-center gap-2">
+                                    {{ audit.company_name or audit.domain }}
+                                    {% if item.phone %}
+                                    <span class="inline-flex items-center gap-1 text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-800/60 px-2 py-0.5 rounded-full mono font-semibold" title="Official WhatsApp">
+                                        <i class="fa-brands fa-whatsapp text-emerald-400"></i> +{{ item.phone }}
+                                    </span>
+                                    {% endif %}
+                                </div>
                                 <div class="text-xs text-slate-400 mono mt-0.5">{{ audit.domain }}</div>
                             </td>
                             <td class="px-6 py-4">
@@ -179,12 +187,19 @@
                             <td class="px-6 py-4 font-bold text-white mono">
                                 AED 1,850.00
                             </td>
-                            <td class="px-6 py-4 text-right space-x-2">
-                                <a href="/security-audit/{{ audit.domain }}" target="_blank" class="inline-block text-xs bg-cyan-950/80 hover:bg-cyan-900 text-cyan-300 border border-cyan-800 px-3 py-1.5 rounded-lg transition">
-                                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Scorecard
+                            <td class="px-6 py-4 text-right space-x-1.5 whitespace-nowrap">
+                                <button onclick="openWhatsAppPitch('{{ item.phone }}', '{{ audit.domain }}', '{{ item.pitch_encoded }}')" 
+                                    class="inline-flex items-center gap-1.5 text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded-lg shadow-md shadow-emerald-900/30 transition">
+                                    <i class="fa-brands fa-whatsapp text-sm"></i> Pitch
+                                </button>
+                                <button onclick="copyPitch('{{ audit.domain }}', '{{ item.pitch_encoded }}')" title="Copy pitch message to clipboard" class="inline-flex items-center text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-2.5 py-1.5 rounded-lg transition">
+                                    <i class="fa-regular fa-copy"></i>
+                                </button>
+                                <a href="/security-audit/{{ audit.domain }}" target="_blank" class="inline-block text-xs bg-cyan-950/80 hover:bg-cyan-900 text-cyan-300 border border-cyan-800 px-2.5 py-1.5 rounded-lg transition" title="View Scorecard">
+                                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
                                 </a>
-                                <a href="/security-checkout/{{ audit.domain }}" target="_blank" class="inline-block text-xs bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border border-emerald-800 px-3 py-1.5 rounded-lg transition">
-                                    <i class="fa-solid fa-lock"></i> Checkout
+                                <a href="/security-checkout/{{ audit.domain }}" target="_blank" class="inline-block text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-2.5 py-1.5 rounded-lg transition" title="Client Checkout">
+                                    <i class="fa-solid fa-lock"></i>
                                 </a>
                             </td>
                         </tr>
@@ -250,17 +265,25 @@
                 const data = await res.json();
                 
                 resBox.innerHTML = `
-                    <div class="flex items-center justify-between">
+                    <div class="flex items-center justify-between flex-wrap gap-4">
                         <div>
                             <span class="font-bold text-white text-base">${data.domain}</span>
                             <span class="ml-2 text-xs px-2.5 py-1 rounded bg-slate-800 font-bold mono ${data.overall_score >= 80 ? 'text-emerald-400' : 'text-rose-400'}">
                                 ${data.overall_score}/100 (${data.security_grade})
                             </span>
-                            <div class="text-xs text-slate-400 mt-1">Risk: <strong class="text-white">${data.risk_level}</strong> | Found ${data.issues.length} Issues</div>
+                            <div class="text-xs text-slate-400 mt-1">
+                                Risk: <strong class="text-white">${data.risk_level}</strong> | Found ${data.issues.length} Issues
+                                ${data.detected_phone ? `<span class="ml-2 text-emerald-400 font-bold mono"><i class="fa-brands fa-whatsapp"></i> +${data.detected_phone}</span>` : ''}
+                            </div>
                         </div>
-                        <a href="/security-audit/${data.domain}" target="_blank" class="bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold px-4 py-2 rounded-lg transition">
-                            View Public Scorecard &rarr;
-                        </a>
+                        <div class="flex items-center gap-2">
+                            <button onclick="openWhatsAppPitch('${data.detected_phone || ''}', '${data.domain}', '${data.pitch_encoded}')" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3.5 py-2 rounded-lg transition inline-flex items-center gap-1.5 shadow-md">
+                                <i class="fa-brands fa-whatsapp text-sm"></i> Pitch on WhatsApp
+                            </button>
+                            <a href="/security-audit/${data.domain}" target="_blank" class="bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold px-3.5 py-2 rounded-lg transition">
+                                View Scorecard &rarr;
+                            </a>
+                        </div>
                     </div>
                 `;
             } catch (err) {
@@ -270,6 +293,25 @@
                 btn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> Audit Domain Now';
             }
         });
+
+        function openWhatsAppPitch(phone, domain, pitchEncoded) {
+            if (!phone || phone === 'None' || phone === '' || phone === 'null') {
+                phone = prompt("Enter official WhatsApp number for " + domain + " (e.g. 97150XXXXXXX):");
+                if (!phone) return;
+                phone = phone.replace(/[^\d]/g, '');
+            }
+            const url = "https://wa.me/" + phone + "?text=" + pitchEncoded;
+            window.open(url, "_blank");
+        }
+
+        function copyPitch(domain, pitchEncoded) {
+            const decoded = decodeURIComponent(pitchEncoded);
+            navigator.clipboard.writeText(decoded).then(() => {
+                alert("Copied customized WhatsApp pitch for " + domain + " to clipboard!\nYou can paste it directly into WhatsApp or LinkedIn.");
+            }).catch(() => {
+                prompt("Copy pitch text below:", decoded);
+            });
+        }
 
         async function triggerDiscovery() {
             if (!confirm('Execute autonomous discovery and batch scan on UAE targets?')) return;

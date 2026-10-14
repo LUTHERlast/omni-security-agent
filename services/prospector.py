@@ -16,16 +16,20 @@ class SecurityProspector:
     def __init__(self):
         # High-value initial seed list of real UAE & B2B corporate domains
         self.target_seeds = [
-            {"domain": "damacproperties.com", "company_name": "DAMAC Properties", "industry": "Luxury Real Estate", "email": "info@damacproperties.com"},
-            {"domain": "alwasl.com", "company_name": "Wasl Properties", "industry": "Real Estate & Asset Management", "email": "info@wasl.com"},
-            {"domain": "asterdmhealthcare.com", "company_name": "Aster DM Healthcare", "industry": "Healthcare & Clinics", "email": "customercare@asterdmhealthcare.com"},
-            {"domain": "mispahinspection.com", "company_name": "Mispah Inspection", "industry": "Engineering & NDT", "email": "it@mispahinspection.com"},
-            {"domain": "virtuzone.com", "company_name": "Virtuzone UAE", "industry": "Corporate Business Setup", "email": "info@virtuzone.com"},
-            {"domain": "dubaichamber.com", "company_name": "Dubai Chamber", "industry": "Corporate Services", "email": "customercare@dubaichamber.com"},
-            {"domain": "alhabtoor.com", "company_name": "Al Habtoor Group", "industry": "Conglomerate & Hospitality", "email": "info@habtoor.com"},
-            {"domain": "azizi.com", "company_name": "Azizi Developments", "industry": "Property Development", "email": "info@azizidevelopments.com"},
-            {"domain": "sobharealty.com", "company_name": "Sobha Realty", "industry": "Luxury Developments", "email": "info@sobharealty.com"},
-            {"domain": "shurooq.gov.ae", "company_name": "Shurooq Investment", "industry": "Investment & Tourism", "email": "info@shurooq.gov.ae"}
+            {"domain": "damacproperties.com", "company_name": "DAMAC Properties", "industry": "Luxury Real Estate", "email": "info@damacproperties.com", "phone": "97143731999"},
+            {"domain": "alwasl.com", "company_name": "Wasl Properties", "industry": "Real Estate & Asset Management", "email": "info@wasl.com", "phone": "97143981111"},
+            {"domain": "asterdmhealthcare.com", "company_name": "Aster DM Healthcare", "industry": "Healthcare & Clinics", "email": "customercare@asterdmhealthcare.com", "phone": "97144400500"},
+            {"domain": "virtuzone.com", "company_name": "Virtuzone UAE", "industry": "Corporate Business Setup", "email": "info@virtuzone.com", "phone": "97144578200"},
+            {"domain": "dubaichamber.com", "company_name": "Dubai Chamber", "industry": "Corporate Services", "email": "customercare@dubaichamber.com", "phone": "97142280000"},
+            {"domain": "alhabtoor.com", "company_name": "Al Habtoor Group", "industry": "Conglomerate & Hospitality", "email": "info@habtoor.com", "phone": "97143999999"},
+            {"domain": "azizi.com", "company_name": "Azizi Developments", "industry": "Property Development", "email": "info@azizidevelopments.com", "phone": "97143596666"},
+            {"domain": "sobharealty.com", "company_name": "Sobha Realty", "industry": "Luxury Developments", "email": "info@sobharealty.com", "phone": "97144238064"},
+            {"domain": "shurooq.gov.ae", "company_name": "Shurooq Investment", "industry": "Investment & Tourism", "email": "info@shurooq.gov.ae", "phone": "97165560777"},
+            {"domain": "drjoydentalclinic.com", "company_name": "Dr. Joy Dental Clinic", "industry": "Cosmetic Dentistry & Orthodontics", "email": "enquiry@drjoydentalclinic.com", "phone": "97143285332"},
+            {"domain": "montrealclinic.ae", "company_name": "Montreal Barsha Clinic", "industry": "Aesthetic & Medical Center", "email": "info@montrealclinic.ae", "phone": "971508990141"},
+            {"domain": "startanybusiness.ae", "company_name": "Start Any Business UAE", "industry": "Corporate Licensing & Setup", "email": "info@startanybusiness.ae", "phone": "971585791578"},
+            {"domain": "kingsmencarrental.com", "company_name": "Kingsmen Luxury Car Rental", "industry": "Exotic Vehicle Rentals", "email": "info@kingsmencarrental.com", "phone": "971522222567"},
+            {"domain": "shuraa.com", "company_name": "Shuraa Business Setup", "industry": "Free Zone & Mainland Setup", "email": "info@shuraa.com", "phone": "97144081900"}
         ]
 
     async def run_discovery_and_audit_cycle(self) -> Dict[str, Any]:
@@ -77,6 +81,7 @@ class SecurityProspector:
                     company_name=seed["company_name"],
                     industry=seed["industry"],
                     contact_email=seed["email"],
+                    phone=seed.get("phone") or res.get("detected_phone"),
                     status="AUDITED",
                     audit_id=audit.id,
                     deal_value=1850.0 # Standard Essential Hardening Package

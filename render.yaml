@@ -31,7 +31,7 @@ services:
       - key: OPERATOR_TELEGRAM
         value: "@dreamer_comrade"
       - key: OPERATOR_WHATSAPP
-        value: "+971503600923"
+        value: "+971547400174"
       - key: SMTP_ENABLED
         value: "True"
       - key: SMTP_HOST

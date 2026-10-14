@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     OPERATOR_TITLE: str = "Cybersecurity Infrastructure & Threat Defense Specialist"
     OPERATOR_EMAIL: str = "athulaisolutions@gmail.com"
     OPERATOR_TELEGRAM: str = "@dreamer_comrade"
-    OPERATOR_WHATSAPP: str = "+971503600923"
+    OPERATOR_WHATSAPP: str = "+971547400174"
     
     # SMTP / Brevo Outbound
     SMTP_ENABLED: bool = True

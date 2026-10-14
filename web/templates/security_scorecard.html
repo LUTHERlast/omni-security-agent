@@ -161,7 +161,7 @@
                 <a href="/security-checkout/{{ audit.domain }}" class="w-full sm:w-auto bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-extrabold px-8 py-3.5 rounded-xl shadow-xl shadow-cyan-500/25 text-sm transition">
                     Lock In Turnkey Hardening (AED 1,850.00) &rarr;
                 </a>
-                <a href="https://wa.me/{{ settings.OPERATOR_WHATSAPP }}?text=Hello%20Athul,%20I%20reviewed%20the%20security%20audit%20for%20{{ audit.domain }}%20and%20want%20to%20fix%20it." target="_blank" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3.5 rounded-xl text-sm transition flex items-center justify-center gap-2">
+                <a href="https://wa.me/{{ settings.OPERATOR_WHATSAPP.replace('+', '').replace(' ', '') }}?text=Hello%20{{ settings.OPERATOR_NAME.split(' ')[0] }},%20I%20reviewed%20the%20security%20audit%20for%20{{ audit.domain }}%20and%20want%20to%20fix%20it." target="_blank" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3.5 rounded-xl text-sm transition flex items-center justify-center gap-2">
                     <i class="fa-brands fa-whatsapp text-lg"></i> Direct WhatsApp Support
                 </a>
             </div>

@@ -1,6 +1,7 @@
 import os
 import json
 import datetime
+import urllib.parse
 from fastapi import FastAPI, Depends, Request, Form
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -52,8 +53,34 @@ async def dashboard_view(request: Request, db: AsyncSession = Depends(get_db)):
     paid_count = (await db.execute(select(func.count(Lead.id)).where(Lead.status == "PAID"))).scalar() or 0
     actual_revenue = (await db.execute(select(func.sum(Lead.deal_value)).where(Lead.status == "PAID"))).scalar() or 0.0
 
-    audits = (await db.execute(select(SecurityAudit).order_by(desc(SecurityAudit.id)).limit(25))).scalars().all()
+    audits = (await db.execute(select(SecurityAudit).order_by(desc(SecurityAudit.id)).limit(35))).scalars().all()
+    leads = (await db.execute(select(Lead))).scalars().all()
+    leads_map = {l.domain: l for l in leads}
     events = (await db.execute(select(SecurityEvent).order_by(desc(SecurityEvent.id)).limit(20))).scalars().all()
+
+    audit_items = []
+    for a in audits:
+        l = leads_map.get(a.domain)
+        phone = (l.phone if l else None) or ""
+        comp = a.company_name or a.domain
+        pitch_text = (
+            f"Hello {comp} Team,\n\n"
+            f"I was reviewing {a.domain} and identified critical security header vulnerabilities (Grade {a.security_grade} - {a.overall_score}/100) "
+            f"leaving your website exposed to SSL stripping and clickjacking.\n\n"
+            f"View your complimentary diagnostic scorecard & blueprint here:\n"
+            f"{settings.PUBLIC_APP_URL}/security-audit/{a.domain}\n\n"
+            f"Our team provides turnkey hardening to resolve all vulnerabilities with zero downtime for AED 1,850. "
+            f"Would you like us to implement this for {a.domain} this week?\n\n"
+            f"— {settings.OPERATOR_NAME}"
+        )
+        pitch_encoded = urllib.parse.quote(pitch_text)
+        audit_items.append({
+            "audit": a,
+            "lead": l,
+            "phone": phone,
+            "pitch_text": pitch_text,
+            "pitch_encoded": pitch_encoded
+        })
 
     pipeline_value = total_leads * settings.DEFAULT_DEAL_VALUE
 
@@ -74,6 +101,7 @@ async def dashboard_view(request: Request, db: AsyncSession = Depends(get_db)):
             "settings": settings,
             "stats": stats,
             "audits": audits,
+            "audit_items": audit_items,
             "events": events
         }
     )
@@ -178,6 +206,27 @@ async def api_audit_now(request: Request, db: AsyncSession = Depends(get_db)):
     audit.issues_json = json.dumps(res["issues"])
     audit.remediation_blueprint_json = json.dumps(res["remediation_blueprint"])
     audit.audit_token = res["audit_token"]
+
+    lead = (await db.execute(select(Lead).where(Lead.domain == clean_domain))).scalar_one_or_none()
+    if not lead and res.get("detected_phone"):
+        lead = Lead(domain=clean_domain, company_name=res.get("company_name"), phone=res.get("detected_phone"), audit_id=audit.id, status="AUDITED")
+        db.add(lead)
+    elif lead and res.get("detected_phone") and not lead.phone:
+        lead.phone = res.get("detected_phone")
+
+    comp = res.get("company_name") or clean_domain
+    pitch_text = (
+        f"Hello {comp} Team,\n\n"
+        f"I was reviewing {clean_domain} and identified critical security header vulnerabilities (Grade {res['security_grade']} - {res['overall_score']}/100) "
+        f"leaving your website exposed to SSL stripping and clickjacking.\n\n"
+        f"View your complimentary diagnostic scorecard & blueprint here:\n"
+        f"{settings.PUBLIC_APP_URL}/security-audit/{clean_domain}\n\n"
+        f"Our team provides turnkey hardening to resolve all vulnerabilities with zero downtime for AED 1,850. "
+        f"Would you like us to implement this for {clean_domain} this week?\n\n"
+        f"— {settings.OPERATOR_NAME}"
+    )
+    res["pitch_text"] = pitch_text
+    res["pitch_encoded"] = urllib.parse.quote(pitch_text)
 
     await db.commit()
     return JSONResponse(res)

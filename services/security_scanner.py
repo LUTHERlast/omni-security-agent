@@ -28,6 +28,40 @@ class SecurityScanner:
         raw = raw.split("/")[0].split(":")[0]
         return raw
 
+    def extract_whatsapp_phone(self, html: str) -> Optional[str]:
+        """Extracts official WhatsApp or UAE mobile phone numbers from HTML."""
+        if not html:
+            return None
+        try:
+            # 1. Look for direct wa.me link
+            wa_match = re.search(r'wa\.me/(\d{10,15})', html, re.IGNORECASE)
+            if wa_match:
+                return wa_match.group(1)
+
+            # 2. Look for api.whatsapp.com link
+            wa_api = re.search(r'api\.whatsapp\.com/send\?[^"\']*phone=(\d{10,15})', html, re.IGNORECASE)
+            if wa_api:
+                return wa_api.group(1)
+
+            # 3. Look for UAE mobile pattern: +971 50/52/54/55/56/58 XXXXXXX
+            uae_mob = re.search(r'(?:\+?971|00971|0)?\s*(5[024568]\d{7})', html)
+            if uae_mob:
+                return f"971{uae_mob.group(1)}"
+
+            # 4. Look for tel: link with UAE digits
+            tel_matches = re.findall(r'href=["\']tel:([^"\']+)["\']', html, re.IGNORECASE)
+            for tel in tel_matches:
+                clean = re.sub(r'[^\d]', '', tel)
+                if clean.startswith("9715") and len(clean) == 12:
+                    return clean
+                if clean.startswith("05") and len(clean) == 10:
+                    return f"971{clean[1:]}"
+                if clean.startswith("9714") and len(clean) == 11:
+                    return clean
+        except Exception:
+            pass
+        return None
+
     def check_ssl(self, domain: str) -> Dict[str, Any]:
         """Inspects live SSL/TLS certificate."""
         ctx = ssl.create_default_context()
@@ -87,7 +121,8 @@ class SecurityScanner:
             "referrer_policy": {"present": False, "value": None},
             "server_signature": None,
             "x_powered_by": None,
-            "https_enforced": False
+            "https_enforced": False,
+            "detected_phone": None
         }
 
         try:
@@ -127,6 +162,10 @@ class SecurityScanner:
                 
                 # Check if landed on https
                 headers_info["https_enforced"] = str(res.url).startswith("https://")
+                
+                # Extract official WhatsApp phone from webpage
+                if res.text:
+                    headers_info["detected_phone"] = self.extract_whatsapp_phone(res.text)
 
         except Exception as e:
             pass
@@ -305,6 +344,7 @@ class SecurityScanner:
             "overall_score": score,
             "security_grade": grade,
             "risk_level": risk,
+            "detected_phone": headers_info.get("detected_phone"),
             "ssl_info": ssl_info,
             "headers_info": headers_info,
             "exposed_endpoints": exposed_endpoints,
