@@ -1,0 +1,58 @@
+services:
+  - type: web
+    name: omni-security-agent
+    runtime: python
+    plan: free
+    region: frankfurt
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python run.py"
+    healthCheckPath: "/api/health"
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.9"
+      - key: APP_NAME
+        value: "OmniSecurity AI"
+      - key: HOST
+        value: "0.0.0.0"
+      - key: SIMULATION_MODE
+        value: "False"
+      - key: OFFERING_NAME
+        value: "24/7 Corporate Cyber Hygiene, SSL & Web Vulnerability Hardening Shield"
+      - key: DEFAULT_DEAL_VALUE
+        value: "1850.0"
+      - key: ENTERPRISE_DEAL_VALUE
+        value: "3850.0"
+      - key: OPERATOR_NAME
+        value: "Athul raj"
+      - key: OPERATOR_TITLE
+        value: "Cybersecurity Infrastructure & Threat Defense Specialist"
+      - key: OPERATOR_EMAIL
+        value: "athulaisolutions@gmail.com"
+      - key: OPERATOR_TELEGRAM
+        value: "@dreamer_comrade"
+      - key: OPERATOR_WHATSAPP
+        value: "+971503600923"
+      - key: SMTP_ENABLED
+        value: "True"
+      - key: SMTP_HOST
+        value: "smtp-relay.brevo.com"
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        value: "athulaisolutions@gmail.com"
+      - key: FROM_EMAIL
+        value: "athulaisolutions@gmail.com"
+      - key: FROM_NAME
+        value: "Athul - Cyber Defense Solutions"
+      - key: NOTIFY_TELEGRAM
+        value: "True"
+      - key: TELEGRAM_BOT_TOKEN
+        value: "8706330311:AAFpYrvU3kmVVQOHEkYvDHS5WwGQmA_t8yU"
+      - key: TELEGRAM_CHAT_ID
+        value: "@dreamer_comrade"
+      - key: HEARTBEAT_ENABLED
+        value: "True"
+      - key: HEARTBEAT_PING_URL
+        value: "https://hc-ping.com/demo-security-uuid"
+      - key: SMTP_PASSWORD
+        sync: false
